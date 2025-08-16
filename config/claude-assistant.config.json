@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "modules": {
+    "rate-limit-manager": {
+      "enabled": true,
+      "config_file": "~/.claude/rate-limit-config.json",
+      "settings": {
+        "warning_threshold": 80,
+        "critical_threshold": 95,
+        "auto_compact_threshold": 75,
+        "token_warning_threshold": 150000,
+        "token_compact_threshold": 180000,
+        "max_context_size": 200000
+      }
+    },
+    "notifications": {
+      "enabled": true,
+      "config_file": "~/.pushover_config",
+      "settings": {
+        "notify_on_error": true,
+        "notify_on_completion": true,
+        "notify_on_rate_limit_warning": true,
+        "notification_cooldown_seconds": 60
+      }
+    },
+    "voice-assistant": {
+      "enabled": false,
+      "settings": {
+        "voice_engine": "pyttsx3",
+        "speech_recognition_engine": "google",
+        "voice_activation_keyword": "claude",
+        "auto_speak_responses": false
+      }
+    }
+  },
+  "global": {
+    "claude_dir": "~/.claude",
+    "hooks_dir": "~/.claude/hooks",
+    "checkpoints_dir": "~/.claude/checkpoints",
+    "log_level": "info",
+    "auto_update_check": false
+  },
+  "api": {
+    "anthropic_api_key_env": "ANTHROPIC_API_KEY",
+    "retry_on_rate_limit": true,
+    "max_retries": 3,
+    "retry_delay_ms": 1000
+  }
+}

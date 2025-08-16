@@ -1,0 +1,128 @@
+#!/bin/bash
+
+# Claude Voice Interactive - Better integration with Claude Code
+# This script handles the voice input and creates proper commands for Claude
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VOICE_FILE="/tmp/claude_voice_input.txt"
+VOICE_HISTORY="/tmp/claude_voice_history.txt"
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+# Function to get voice input
+get_voice_input() {
+    python3 "$SCRIPT_DIR/voice_to_file.py"
+    if [ -f "$VOICE_FILE" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to send to Claude
+send_to_claude() {
+    if [ ! -f "$VOICE_FILE" ]; then
+        echo "No voice input file found"
+        return 1
+    fi
+    
+    # Read the command
+    COMMAND=$(cat "$VOICE_FILE")
+    
+    # Add to history
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $COMMAND" >> "$VOICE_HISTORY"
+    
+    echo -e "${BLUE}Sending to Claude:${NC} $COMMAND"
+    
+    # Create a temporary script to run Claude with the command
+    TEMP_SCRIPT="/tmp/claude_run_$$.sh"
+    cat > "$TEMP_SCRIPT" << EOF
+#!/bin/bash
+echo "$COMMAND" | claude
+EOF
+    
+    chmod +x "$TEMP_SCRIPT"
+    
+    # Run in a new terminal if possible, otherwise run directly
+    if command -v gnome-terminal &> /dev/null; then
+        gnome-terminal -- bash -c "$TEMP_SCRIPT; read -p 'Press Enter to close...'"
+    elif command -v xterm &> /dev/null; then
+        xterm -e "$TEMP_SCRIPT; read -p 'Press Enter to close...'"
+    else
+        # Run directly
+        bash "$TEMP_SCRIPT"
+    fi
+    
+    # Cleanup
+    rm -f "$TEMP_SCRIPT"
+}
+
+# Main interactive loop
+main() {
+    echo -e "${GREEN}Claude Voice Interactive Mode${NC}"
+    echo "=============================="
+    echo ""
+    echo "Commands:"
+    echo "  speak  (s) - Record voice command"
+    echo "  last   (l) - Use last voice command"
+    echo "  history(h) - Show command history"
+    echo "  clear  (c) - Clear history"
+    echo "  quit   (q) - Exit"
+    echo ""
+    
+    while true; do
+        echo -e -n "${BLUE}claude-voice>${NC} "
+        read -r cmd
+        
+        case "$cmd" in
+            s|speak)
+                get_voice_input
+                if [ $? -eq 0 ]; then
+                    send_to_claude
+                fi
+                ;;
+            l|last)
+                if [ -f "$VOICE_FILE" ]; then
+                    send_to_claude
+                else
+                    echo "No previous command found"
+                fi
+                ;;
+            h|history)
+                if [ -f "$VOICE_HISTORY" ]; then
+                    echo -e "${YELLOW}Command History:${NC}"
+                    cat "$VOICE_HISTORY"
+                else
+                    echo "No history yet"
+                fi
+                ;;
+            c|clear)
+                rm -f "$VOICE_HISTORY"
+                echo "History cleared"
+                ;;
+            q|quit|exit)
+                echo "Goodbye!"
+                exit 0
+                ;;
+            *)
+                echo "Unknown command: $cmd"
+                echo "Type 's' to speak, 'h' for help"
+                ;;
+        esac
+        echo ""
+    done
+}
+
+# Check for direct mode
+if [ "$1" == "--direct" ] || [ "$1" == "-d" ]; then
+    get_voice_input
+    if [ $? -eq 0 ] && [ -f "$VOICE_FILE" ]; then
+        cat "$VOICE_FILE"
+    fi
+else
+    main
+fi

@@ -1,0 +1,25 @@
+{
+  "warning_threshold": 80,
+  "critical_threshold": 95,
+  "auto_compact_threshold": 75,
+  "token_warning_threshold": 150000,
+  "token_compact_threshold": 180000,
+  "max_context_size": 200000,
+  "checkpoint_settings": {
+    "max_checkpoints": 10,
+    "auto_checkpoint_interval": 50,
+    "checkpoint_on_warning": true,
+    "checkpoint_on_critical": true,
+    "checkpoint_before_compact": true
+  },
+  "monitoring": {
+    "enable_notifications": true,
+    "log_verbose": false,
+    "dashboard_refresh_interval": 5
+  },
+  "api_settings": {
+    "retry_on_rate_limit": true,
+    "max_retries": 3,
+    "retry_delay_ms": 1000
+  }
+}
