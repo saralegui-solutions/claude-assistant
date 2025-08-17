@@ -87,13 +87,13 @@ fetch_rate_limits() {
     local input_used=0
     local output_used=0
     
-    if [ -n "$requests_limit" ] && [ -n "$requests_remaining" ]; then
+    if [ -n "$requests_limit" ] && [ -n "$requests_remaining" ] && [ "$requests_limit" != "" ] && [ "$requests_remaining" != "" ]; then
         requests_used=$((requests_limit - requests_remaining))
     fi
-    if [ -n "$input_limit" ] && [ -n "$input_remaining" ]; then
+    if [ -n "$input_limit" ] && [ -n "$input_remaining" ] && [ "$input_limit" != "" ] && [ "$input_remaining" != "" ]; then
         input_used=$((input_limit - input_remaining))
     fi
-    if [ -n "$output_limit" ] && [ -n "$output_remaining" ]; then
+    if [ -n "$output_limit" ] && [ -n "$output_remaining" ] && [ "$output_limit" != "" ] && [ "$output_remaining" != "" ]; then
         output_used=$((output_limit - output_remaining))
     fi
     
@@ -134,25 +134,25 @@ display_rate_limits() {
     fi
     
     if [ -f "$CACHE_FILE" ]; then
-        local requests_limit=$(jq -r '.requests.limit' "$CACHE_FILE")
-        local requests_remaining=$(jq -r '.requests.remaining' "$CACHE_FILE")
-        local requests_used=$(jq -r '.requests.used' "$CACHE_FILE")
-        local input_limit=$(jq -r '.input_tokens.limit' "$CACHE_FILE")
-        local input_remaining=$(jq -r '.input_tokens.remaining' "$CACHE_FILE")
-        local input_used=$(jq -r '.input_tokens.used' "$CACHE_FILE")
-        local output_limit=$(jq -r '.output_tokens.limit' "$CACHE_FILE")
-        local output_remaining=$(jq -r '.output_tokens.remaining' "$CACHE_FILE")
-        local output_used=$(jq -r '.output_tokens.used' "$CACHE_FILE")
-        local reset_time=$(jq -r '.reset_time' "$CACHE_FILE")
+        local requests_limit=$(jq -r '.requests.limit // 0' "$CACHE_FILE")
+        local requests_remaining=$(jq -r '.requests.remaining // 0' "$CACHE_FILE")
+        local requests_used=$(jq -r '.requests.used // 0' "$CACHE_FILE")
+        local input_limit=$(jq -r '.input_tokens.limit // 0' "$CACHE_FILE")
+        local input_remaining=$(jq -r '.input_tokens.remaining // 0' "$CACHE_FILE")
+        local input_used=$(jq -r '.input_tokens.used // 0' "$CACHE_FILE")
+        local output_limit=$(jq -r '.output_tokens.limit // 0' "$CACHE_FILE")
+        local output_remaining=$(jq -r '.output_tokens.remaining // 0' "$CACHE_FILE")
+        local output_used=$(jq -r '.output_tokens.used // 0' "$CACHE_FILE")
+        local reset_time=$(jq -r '.reset_time // "unknown"' "$CACHE_FILE")
         
         # Calculate percentages
         local requests_pct=0
         local input_pct=0
         local output_pct=0
         
-        [ "$requests_limit" -gt 0 ] && requests_pct=$((requests_used * 100 / requests_limit))
-        [ "$input_limit" -gt 0 ] && input_pct=$((input_used * 100 / input_limit))
-        [ "$output_limit" -gt 0 ] && output_pct=$((output_used * 100 / output_limit))
+        [ "$requests_limit" != "null" ] && [ "$requests_limit" -gt 0 ] && requests_pct=$((requests_used * 100 / requests_limit))
+        [ "$input_limit" != "null" ] && [ "$input_limit" -gt 0 ] && input_pct=$((input_used * 100 / input_limit))
+        [ "$output_limit" != "null" ] && [ "$output_limit" -gt 0 ] && output_pct=$((output_used * 100 / output_limit))
         
         echo ""
         echo -e "${BOLD}Requests:${NC}"
@@ -183,10 +183,10 @@ display_context_metrics() {
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
     
     if [ -f "$METRICS_FILE" ]; then
-        local context_tokens=$(jq -r '.estimated_context_tokens' "$METRICS_FILE")
-        local usage_tokens=$(jq -r '.estimated_usage_tokens' "$METRICS_FILE")
-        local approaching=$(jq -r '.approaching_limit' "$METRICS_FILE")
-        local suggest_compact=$(jq -r '.suggest_compact' "$METRICS_FILE")
+        local context_tokens=$(jq -r '.estimated_context_tokens // 0' "$METRICS_FILE")
+        local usage_tokens=$(jq -r '.estimated_usage_tokens // 0' "$METRICS_FILE")
+        local approaching=$(jq -r '.approaching_limit // false' "$METRICS_FILE")
+        local suggest_compact=$(jq -r '.suggest_compact // false' "$METRICS_FILE")
         
         echo ""
         echo -e "${BOLD}Estimated Context:${NC} $(format_number $context_tokens) tokens"
@@ -238,10 +238,10 @@ display_recommendations() {
     echo ""
     
     if [ -f "$CACHE_FILE" ]; then
-        local requests_limit=$(jq -r '.requests.limit' "$CACHE_FILE")
-        local requests_used=$(jq -r '.requests.used' "$CACHE_FILE")
+        local requests_limit=$(jq -r '.requests.limit // 0' "$CACHE_FILE")
+        local requests_used=$(jq -r '.requests.used // 0' "$CACHE_FILE")
         local requests_pct=0
-        [ "$requests_limit" -gt 0 ] && requests_pct=$((requests_used * 100 / requests_limit))
+        [ "$requests_limit" != "null" ] && [ "$requests_limit" -gt 0 ] && requests_pct=$((requests_used * 100 / requests_limit))
         
         if [ "$requests_pct" -ge 80 ]; then
             echo -e "  ${RED}• Critical: Rate limits nearly exhausted!${NC}"
