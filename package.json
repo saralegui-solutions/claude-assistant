@@ -6,7 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "setup": "node setup.js",
+    "configure": "node configure.js",
+    "check-updates": "node check-updates.js",
+    "install-hooks": "bash hooks/install-claude-hooks.sh"
   },
   "keywords": ["claude", "ai", "assistant", "anthropic"],
   "author": "",

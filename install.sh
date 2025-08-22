@@ -27,6 +27,7 @@ declare -A MODULES=(
     ["rate-limit-manager"]="Rate Limit Manager - Prevent 500 errors with smart monitoring"
     ["notifications"]="Notifications - Get alerts for Claude Code events"
     ["voice-assistant"]="Voice Assistant - Voice input/output for Claude"
+    ["pdf-generator"]="PDF Generator - Convert markdown and documents to professional PDFs"
 )
 
 # Function to print colored output
@@ -296,6 +297,57 @@ install_voice_assistant() {
     print_success "Voice Assistant installed"
 }
 
+# Install PDF Generator module
+install_pdf_generator() {
+    print_status "Installing PDF Generator..."
+    
+    local module_dir="$SCRIPT_DIR/modules/pdf-generator"
+    
+    # Create PDF generator directory
+    mkdir -p "$CLAUDE_DIR/pdf-generator"
+    
+    # Copy PDF generator files
+    cp "$module_dir/pdf_generator.py" "$CLAUDE_DIR/pdf-generator/"
+    cp "$module_dir/config.json" "$CLAUDE_DIR/pdf-generator/"
+    cp "$module_dir/custom.css" "$CLAUDE_DIR/pdf-generator/"
+    cp "$module_dir/sample.md" "$CLAUDE_DIR/pdf-generator/"
+    cp "$module_dir/README.md" "$CLAUDE_DIR/pdf-generator/"
+    
+    # Make executable
+    chmod +x "$CLAUDE_DIR/pdf-generator/pdf_generator.py"
+    
+    # Create convenience command
+    cat > "$CLAUDE_DIR/claude-pdf" << 'EOPDF'
+#!/bin/bash
+# Claude PDF Generator wrapper
+
+PDF_GEN="$HOME/.claude/pdf-generator/pdf_generator.py"
+
+if [ ! -f "$PDF_GEN" ]; then
+    echo "PDF Generator not installed. Run: claude-assistant install pdf-generator"
+    exit 1
+fi
+
+python3 "$PDF_GEN" "$@"
+EOPDF
+    
+    chmod +x "$CLAUDE_DIR/claude-pdf"
+    
+    # Check for Python dependencies
+    if command -v python3 &> /dev/null; then
+        print_info "Checking Python dependencies for PDF generator..."
+        python3 -m pip list | grep -q markdown2 || \
+            print_warning "Install Python packages for best results: pip install markdown2 pdfkit md2pdf pypandoc"
+    fi
+    
+    # Check for system tools
+    if ! command -v pandoc &> /dev/null && ! command -v wkhtmltopdf &> /dev/null; then
+        print_warning "For best PDF quality, install: pandoc or wkhtmltopdf"
+    fi
+    
+    print_success "PDF Generator installed"
+}
+
 # Configure hooks in settings.json
 configure_hooks() {
     print_status "Configuring Claude Code hooks..."
@@ -401,6 +453,9 @@ case "$1" in
     voice)
         ~/.claude/claude-voice ${@:2}
         ;;
+    pdf)
+        ~/.claude/claude-pdf ${@:2}
+        ;;
     config)
         ${EDITOR:-nano} ~/.claude/rate-limit-config.json
         ;;
@@ -411,6 +466,7 @@ case "$1" in
         echo "  context    - Check context status"
         echo "  limits     - Check current rate limits"
         echo "  voice      - Start voice assistant"
+        echo "  pdf        - Convert documents to PDF"
         echo "  config     - Edit configuration"
         echo "  help       - Show this help"
         ;;
@@ -466,6 +522,13 @@ display_summary() {
         echo ""
     fi
     
+    if [[ " ${SELECTED_MODULES[@]} " =~ " pdf-generator " ]]; then
+        echo "  PDF Generator:"
+        echo "    $CLAUDE_DIR/claude-pdf"
+        echo "    Test: claude-pdf --check"
+        echo ""
+    fi
+    
     echo -e "${BOLD}Configuration Files:${NC}"
     echo "  • Settings: $SETTINGS_FILE"
     echo "  • Rate Limits: $CLAUDE_DIR/rate-limit-config.json"
@@ -512,6 +575,9 @@ main() {
                 ;;
             voice-assistant)
                 install_voice_assistant
+                ;;
+            pdf-generator)
+                install_pdf_generator
                 ;;
         esac
     done

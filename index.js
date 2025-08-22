@@ -1,11 +1,20 @@
 import Anthropic from '@anthropic-ai/sdk';
-import dotenv from 'dotenv';
 import readline from 'readline';
+import ConfigManager from './lib/config-manager.js';
 
-dotenv.config();
+const configManager = new ConfigManager();
+let config;
+
+try {
+  config = configManager.loadConfig();
+  console.log(`Using API key from: ${config.source}${config.profile ? ` (profile: ${config.profile})` : ''}`);
+} catch (error) {
+  console.error('Configuration error:', error.message);
+  process.exit(1);
+}
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: config.apiKey,
 });
 
 const rl = readline.createInterface({
@@ -14,9 +23,9 @@ const rl = readline.createInterface({
 });
 
 class ClaudeAssistant {
-  constructor() {
+  constructor(modelOverride = null) {
     this.conversationHistory = [];
-    this.model = 'claude-3-5-sonnet-20241022';
+    this.model = modelOverride || config.model || 'claude-3-5-sonnet-20241022';
   }
 
   async sendMessage(userMessage) {
@@ -74,12 +83,6 @@ async function main() {
   };
 
   askQuestion();
-}
-
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('Error: ANTHROPIC_API_KEY is not set in your environment variables.');
-  console.error('Please create a .env file with your API key or set it in your environment.');
-  process.exit(1);
 }
 
 main();

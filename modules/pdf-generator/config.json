@@ -1,0 +1,19 @@
+{
+  "output": {
+    "paper_size": "letter",
+    "margin": "1in",
+    "font_size": "11pt",
+    "font_family": "Arial, sans-serif",
+    "orientation": "portrait"
+  },
+  "processing": {
+    "syntax_highlighting": true,
+    "table_of_contents": false,
+    "numbered_sections": false,
+    "preserve_tabs": true
+  },
+  "paths": {
+    "custom_css": "custom.css",
+    "output_dir": "."
+  }
+}

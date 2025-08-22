@@ -41,6 +41,7 @@
     "auto_update_check": false
   },
   "api": {
+    "profile": "default",
     "anthropic_api_key_env": "ANTHROPIC_API_KEY",
     "retry_on_rate_limit": true,
     "max_retries": 3,

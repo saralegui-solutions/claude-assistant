@@ -1,0 +1,202 @@
+# Claude Code PDF Generator Test Document
+
+## Introduction
+
+This document tests all major markdown features supported by the Claude Code PDF Generator. It demonstrates proper rendering of various elements including headings, lists, code blocks, tables, and more.
+
+## Text Formatting
+
+This paragraph contains **bold text**, *italic text*, and ***bold italic text***. You can also use `inline code` within paragraphs.
+
+Here's a paragraph with a [link to Claude documentation](https://docs.anthropic.com) and some ~~strikethrough text~~.
+
+## Lists
+
+### Unordered List
+- First item
+- Second item
+  - Nested item 1
+  - Nested item 2
+    - Deep nested item
+- Third item
+
+### Ordered List
+1. First step
+2. Second step
+   1. Sub-step A
+   2. Sub-step B
+3. Third step
+
+### Task List
+- [x] Completed task
+- [ ] Pending task
+- [x] Another completed task
+- [ ] Future task
+
+## Code Blocks
+
+### Python Example
+```python
+def generate_pdf(input_file, output_file):
+    """Convert markdown to PDF using Claude Code PDF Generator"""
+    generator = PDFGenerator()
+    
+    if generator.check_system():
+        result = generator.convert(input_file, output_file)
+        print(f"Conversion {'successful' if result else 'failed'}")
+    
+    return result
+```
+
+### JavaScript Example
+```javascript
+// Claude Code integration example
+async function convertToPDF(markdown) {
+    const response = await fetch('/api/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: markdown })
+    });
+    
+    return response.blob();
+}
+```
+
+### Bash Example
+```bash
+#!/bin/bash
+# Batch convert all markdown files
+for file in *.md; do
+    python pdf_generator.py "$file" "${file%.md}.pdf"
+    echo "Converted: $file"
+done
+```
+
+## Tables
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Pandoc | ✓ Supported | High-quality LaTeX-based rendering |
+| wkhtmltopdf | ✓ Supported | HTML to PDF conversion |
+| Python Libraries | ✓ Supported | Multiple fallback options |
+| Batch Processing | ✓ Supported | Convert entire directories |
+| Custom Styling | ✓ Supported | CSS customization available |
+
+## Blockquotes
+
+> "The Claude Code PDF Generator provides multiple backend options for reliable document conversion."
+> 
+> — Claude Assistant Documentation
+
+## Mathematical Expressions
+
+When using pandoc with LaTeX, you can include mathematical expressions:
+
+Inline math: $E = mc^2$
+
+Display math:
+$$\sum_{i=1}^{n} x_i = x_1 + x_2 + ... + x_n$$
+
+## Images
+
+![Claude Logo](https://via.placeholder.com/300x100/0366d6/ffffff?text=Claude+Code)
+
+## Horizontal Rules
+
+---
+
+## Special Sections
+
+### Note
+<div class="claude-note">
+This is a special note section with custom styling for important information.
+</div>
+
+### Warning
+<div class="claude-warning">
+This is a warning section for cautionary messages.
+</div>
+
+### Error Example
+<div class="claude-error">
+This shows how error messages would be formatted.
+</div>
+
+## Complex Nested Structure
+
+1. **Main Topic One**
+   - Subtopic A
+     - Detail 1: `command --option`
+     - Detail 2: Configuration in `config.json`
+   - Subtopic B
+     1. First point
+     2. Second point with **emphasis**
+     
+2. **Main Topic Two**
+   ```python
+   # Code within a list
+   def example():
+       return "nested code"
+   ```
+   
+   > Blockquote within a list showing advanced formatting
+
+## Long Code Block
+
+```python
+class PDFGenerator:
+    """
+    Multi-backend PDF generator with automatic fallback
+    Supports: Markdown, HTML, Text, reStructuredText
+    """
+    
+    def __init__(self, config_file=None):
+        self.config = self.load_config(config_file)
+        self.available_methods = self.detect_available_methods()
+        self.logger = logging.getLogger(__name__)
+        
+    def detect_available_methods(self):
+        """Detect which PDF generation methods are available"""
+        methods = []
+        
+        # Check for system commands
+        if self.check_command('pandoc'):
+            methods.append('pandoc')
+            self.logger.info("✓ Pandoc detected")
+        
+        if self.check_command('wkhtmltopdf'):
+            methods.append('wkhtmltopdf')
+            self.logger.info("✓ wkhtmltopdf detected")
+        
+        # Check for Python libraries
+        try:
+            import pdfkit
+            methods.append('python-pdfkit')
+        except ImportError:
+            pass
+            
+        return methods
+    
+    def convert(self, input_file, output_file, method=None):
+        """Convert input file to PDF using specified or best available method"""
+        
+        # Implementation details...
+        pass
+```
+
+## Summary
+
+This document has demonstrated:
+- ✅ Text formatting and styling
+- ✅ Multiple list types
+- ✅ Code blocks with syntax highlighting
+- ✅ Tables with alignment
+- ✅ Blockquotes
+- ✅ Mathematical expressions (when using LaTeX)
+- ✅ Images and media
+- ✅ Special styled sections
+- ✅ Complex nested structures
+
+---
+
+*Generated by Claude Code PDF Generator - Testing All Features*
