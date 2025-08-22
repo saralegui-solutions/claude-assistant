@@ -2,6 +2,15 @@
 
 A comprehensive collection of tools and enhancements for Claude Code, designed to improve productivity, prevent errors, and add powerful features to your AI-assisted development workflow.
 
+## ⚡ One-Command Installation
+
+```bash
+# Quick install with all features (recommended)
+curl -sSL https://raw.githubusercontent.com/saralegui-solutions/claude-assistant/main/install-claude.sh | bash
+```
+
+After installation, restart terminal and type `cl` for the quick menu!
+
 ## 🚀 Features
 
 ### 📊 Rate Limit Manager
@@ -26,6 +35,14 @@ Hands-free interaction with Claude:
 - Multiple voice engine support
 - WSL and Windows integration
 
+### 📄 PDF Generator
+Professional document generation with multiple backends:
+- Convert markdown to PDF with automatic fallback
+- Support for pandoc, wkhtmltopdf, and Python libraries
+- Batch conversion for entire directories
+- Custom CSS styling and templates
+- Works offline after initial setup
+
 ## 📦 Quick Installation
 
 ### Install Everything
@@ -47,6 +64,25 @@ Hands-free interaction with Claude:
 ```
 
 ## 🎯 Quick Start
+
+### Super Quick Commands (after installation)
+```bash
+cl          # Quick launcher menu (easiest!)
+dash        # Rate limit dashboard
+ca          # Claude assistant main command
+ca-help     # Show all available commands
+```
+
+### Essential Aliases
+After installation, these aliases are available:
+- `cl` - Quick launcher with menu
+- `dash` - Rate limit dashboard
+- `ca-pdf` - PDF generator
+- `ca-voice` - Voice input
+- `ca-check` - Create checkpoint
+- `ca-status` - System status check
+
+## 📖 Usage Examples
 
 ### Set Your API Key
 ```bash
