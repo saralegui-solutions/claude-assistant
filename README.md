@@ -35,6 +35,7 @@ Choose only what you need:
 | **Rate Limit Manager** | API monitoring & protection | ~1MB | jq |
 | **PDF Generator** | Document conversion | ~1MB | python3 |
 | **Voice Assistant** | Voice input/output | ~2MB | python3, pyaudio |
+| **Whisper Transcription** | Speech-to-text with OpenAI Whisper | ~2MB | python3, ffmpeg |
 | **Notifications** | Alerts & notifications | ~500KB | curl |
 
 ## 🚀 Quick Start
@@ -142,6 +143,13 @@ The installer will ask you:
 - Multiple language support
 - WSL/Windows compatible
 
+### Whisper Transcription
+- High-quality speech-to-text
+- Multiple backend support
+- 99+ language support
+- Microphone recording
+- Batch processing
+
 ### Notifications
 - Pushover mobile alerts
 - Desktop notifications
@@ -171,6 +179,7 @@ The installer will ask you:
 - [Rate Limit Manager](docs/modules/rate-limit-manager.md)
 - [PDF Generator](docs/modules/pdf-generator.md)
 - [Voice Assistant](docs/modules/voice-assistant.md)
+- [Whisper Transcription](docs/modules/whisper-transcription.md)
 - [Notifications](docs/modules/notifications.md)
 
 ## 🆘 Troubleshooting

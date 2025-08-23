@@ -1,0 +1,28 @@
+{
+  "model": "base",
+  "language": "auto",
+  "device": "auto",
+  "output_format": "text",
+  "temperature": 0,
+  "options": {
+    "fp16": true,
+    "threads": 4,
+    "verbose": false,
+    "condition_on_previous_text": true,
+    "compression_ratio_threshold": 2.4,
+    "logprob_threshold": -1.0,
+    "no_speech_threshold": 0.6
+  },
+  "backends": {
+    "prefer_local": true,
+    "allow_api": true,
+    "cache_models": true
+  },
+  "model_sizes": {
+    "tiny": "39M",
+    "base": "74M",
+    "small": "244M",
+    "medium": "769M",
+    "large": "1550M"
+  }
+}

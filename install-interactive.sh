@@ -52,6 +52,11 @@ MODULE_DESC["pdf-generator"]="Convert markdown and documents to professional PDF
 MODULE_DEPS["pdf-generator"]="python3"
 MODULE_SIZE["pdf-generator"]="~1MB"
 
+MODULES["whisper-transcription"]="Whisper Transcription"
+MODULE_DESC["whisper-transcription"]="High-quality speech-to-text using OpenAI Whisper"
+MODULE_DEPS["whisper-transcription"]="python3 ffmpeg"
+MODULE_SIZE["whisper-transcription"]="~2MB"
+
 # Selected modules array
 declare -a SELECTED_MODULES=("core")
 
@@ -140,7 +145,7 @@ select_modules() {
     # List optional modules
     local i=1
     local module_array=()
-    for module in rate-limit-manager notifications voice-assistant pdf-generator; do
+    for module in rate-limit-manager notifications voice-assistant pdf-generator whisper-transcription; do
         module_array+=("$module")
         echo -e "${BOLD}[$i]${NC} ${MODULES[$module]}"
         echo -e "    ${MODULE_DESC[$module]}"
@@ -157,7 +162,7 @@ select_modules() {
     
     case "$choice" in
         [Aa]*)
-            SELECTED_MODULES+=(rate-limit-manager notifications voice-assistant pdf-generator)
+            SELECTED_MODULES+=(rate-limit-manager notifications voice-assistant pdf-generator whisper-transcription)
             echo -e "\n${GREEN}Installing all modules${NC}"
             ;;
         [Mm]*)
@@ -332,6 +337,9 @@ install_modules() {
             pdf-generator)
                 install_pdf_module
                 ;;
+            whisper-transcription)
+                install_whisper_module
+                ;;
         esac
         
         echo -e "${GREEN}✓${NC} ${MODULES[$module]} installed"
@@ -496,6 +504,25 @@ install_pdf_module() {
 python3 "$HOME/.claude/pdf-generator/pdf_generator.py" "$@"
 EOF
     chmod +x "$CLAUDE_DIR/bin/claude-pdf"
+}
+
+# Whisper module installation
+install_whisper_module() {
+    local module_dir="$SCRIPT_DIR/modules/whisper-transcription"
+    
+    mkdir -p "$CLAUDE_DIR/whisper"
+    cp "$module_dir/"*.py "$CLAUDE_DIR/whisper/" 2>/dev/null || true
+    cp "$module_dir/"*.json "$CLAUDE_DIR/whisper/" 2>/dev/null || true
+    
+    # Create Whisper wrapper
+    cat > "$CLAUDE_DIR/bin/claude-whisper" << 'EOF'
+#!/bin/bash
+python3 "$HOME/.claude/whisper/whisper_transcribe.py" "$@"
+EOF
+    chmod +x "$CLAUDE_DIR/bin/claude-whisper"
+    
+    # Create alias
+    ln -sf "$CLAUDE_DIR/bin/claude-whisper" "$CLAUDE_DIR/bin/whisper-transcribe" 2>/dev/null || true
 }
 
 # Step 6: Configure shell
