@@ -255,10 +255,8 @@ ca-help() {
     echo \"  claude-code - Claude with permissions bypass\"
 }
 
-# Claude Code alias (if not already present)
-if ! grep -q \"alias claude-code=\" ~/.bashrc 2>/dev/null && ! grep -q \"alias claude-code=\" ~/.zshrc 2>/dev/null; then
-    alias claude-code=\"claude --dangerously-skip-permissions\"
-fi
+# Claude Code alias
+alias claude-code='claude --dangerously-skip-permissions'
 # ============================================"
     
     # Check if aliases already exist

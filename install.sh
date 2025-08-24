@@ -485,6 +485,23 @@ EOF
         echo "  export PATH=\"\$PATH:$CLAUDE_DIR\""
     fi
     
+    # Add claude-code alias to shell profile
+    local shell_config=""
+    if [ -f "$HOME/.zshrc" ]; then
+        shell_config="$HOME/.zshrc"
+    elif [ -f "$HOME/.bashrc" ]; then
+        shell_config="$HOME/.bashrc"
+    else
+        shell_config="$HOME/.profile"
+    fi
+    
+    if ! grep -q "alias claude-code=" "$shell_config" 2>/dev/null; then
+        echo "" >> "$shell_config"
+        echo "# Claude Code alias" >> "$shell_config"
+        echo "alias claude-code='claude --dangerously-skip-permissions'" >> "$shell_config"
+        print_success "Added claude-code alias to $shell_config"
+    fi
+    
     print_success "Convenience commands created"
 }
 
