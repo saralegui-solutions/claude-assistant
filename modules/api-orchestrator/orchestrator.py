@@ -25,7 +25,7 @@ except ImportError:
     sys.exit(1)
 
 class ClaudeOrchestrator:
-    def __init__(self):
+    def __init__(self, model=None):
         self.client = anthropic.Anthropic(
             api_key=self.load_api_key()
         )
@@ -34,6 +34,22 @@ class ClaudeOrchestrator:
         self.conversation_history = []
         self.current_session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.session_log_file = self.session_dir / f"session_{self.current_session_id}.log"
+        
+        # Model selection with Claude Opus 4.1 as default
+        self.available_models = {
+            "opus-4.1": "claude-opus-4-1-20250805",
+            "opus": "claude-3-opus-20240229",
+            "sonnet": "claude-3-5-sonnet-20241022",
+            "sonnet-new": "claude-3-5-sonnet-20241022",
+            "haiku": "claude-3-haiku-20240307"
+        }
+        
+        # Set default model to Opus 4.1
+        self.current_model = model if model else self.available_models["opus-4.1"]
+        
+        # If model is a shorthand, convert it
+        if model and model.lower() in self.available_models:
+            self.current_model = self.available_models[model.lower()]
         
     def load_api_key(self):
         """Load API key from environment or Claude Assistant config"""
@@ -82,6 +98,41 @@ class ClaudeOrchestrator:
         # File output
         with open(self.session_log_file, 'a') as f:
             f.write(log_entry + "\n")
+    
+    def select_model(self):
+        """Interactive model selection"""
+        print("\n🤖 Available Models:")
+        print("  1. Claude Opus 4.1 (Latest, Recommended)")
+        print("  2. Claude 3 Opus (Previous generation)")
+        print("  3. Claude 3.5 Sonnet (Fast, capable)")
+        print("  4. Claude 3 Haiku (Fastest, lightweight)")
+        print(f"\nCurrent model: {self.get_model_name()}")
+        print("\nSelect model [1-4, or press Enter to keep current]: ", end="")
+        
+        choice = input().strip()
+        if choice == "1":
+            self.current_model = self.available_models["opus-4.1"]
+            print("✅ Switched to Claude Opus 4.1")
+        elif choice == "2":
+            self.current_model = self.available_models["opus"]
+            print("✅ Switched to Claude 3 Opus")
+        elif choice == "3":
+            self.current_model = self.available_models["sonnet"]
+            print("✅ Switched to Claude 3.5 Sonnet")
+        elif choice == "4":
+            self.current_model = self.available_models["haiku"]
+            print("✅ Switched to Claude 3 Haiku")
+        elif choice == "":
+            print(f"Keeping current model: {self.get_model_name()}")
+        else:
+            print("Invalid choice, keeping current model")
+    
+    def get_model_name(self):
+        """Get friendly name for current model"""
+        for name, id in self.available_models.items():
+            if id == self.current_model:
+                return f"{name.upper()} ({id})"
+        return self.current_model
     
     def capture_voice_input(self):
         """Use existing voice module to get input"""
@@ -133,7 +184,7 @@ class ClaudeOrchestrator:
         try:
             # Make API call with structured output request
             response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model=self.current_model,
                 max_tokens=4000,
                 messages=messages,
                 system="""You are helping orchestrate a Claude Code session. 
@@ -313,9 +364,11 @@ class ClaudeOrchestrator:
         """Main orchestration loop"""
         print("\n" + "="*60)
         print("🚀 Claude Orchestrated Session")
+        print(f"🤖 Model: {self.get_model_name()}")
         print("="*60 + "\n")
         
         self.log(f"Starting session {self.current_session_id}", "INFO")
+        self.log(f"Using model: {self.get_model_name()}", "INFO")
         
         # Step 1: Get initial input (voice or text)
         if initial_input is None:
@@ -393,9 +446,10 @@ Then provide executable tasks for Claude Code."""
                 print("  [r]eview      - Show detailed results")
                 print("  [m]odify      - Provide new instructions")
                 print("  [v]oice       - Add voice instructions")
+                print("  [o]model      - Change AI model")
                 print("  [s]top        - End session")
                 
-                choice = input("\n👉 Your choice [c/r/m/v/s]: ").lower().strip()
+                choice = input("\n👉 Your choice [c/r/m/v/o/s]: ").lower().strip()
                 
                 if choice == 's':
                     self.log("Session stopped by user", "INFO")
@@ -426,6 +480,9 @@ Please adjust the plan accordingly and provide next tasks."""
                     print("\n📊 Detailed Results:")
                     print(json.dumps(task_results, indent=2))
                     input("\nPress Enter to continue...")
+                elif choice == 'o':
+                    self.select_model()
+                    # Continue with same context
             
             # Send results back to Claude for verification/next steps
             print("\n🔄 Getting next steps from Claude API...")
@@ -479,25 +536,51 @@ Based on these results:
 
 def main():
     """Main entry point"""
+    model = None
+    initial_input = None
+    
     # Parse command line arguments
-    if len(sys.argv) > 1:
-        if sys.argv[1] == '--help':
+    i = 1
+    while i < len(sys.argv):
+        arg = sys.argv[i]
+        
+        if arg == '--help':
             print("Claude Orchestrator - Automated Claude Code Session Manager")
             print("\nUsage:")
-            print("  orchestrator.py              - Start with voice input")
-            print("  orchestrator.py 'request'    - Start with text input")
-            print("  orchestrator.py --help       - Show this help")
+            print("  orchestrator.py                    - Start with voice input")
+            print("  orchestrator.py 'request'          - Start with text input")
+            print("  orchestrator.py --model MODEL      - Select model (opus-4.1, opus, sonnet, haiku)")
+            print("  orchestrator.py --select-model     - Interactive model selection")
+            print("  orchestrator.py --help             - Show this help")
+            print("\nModels:")
+            print("  opus-4.1  - Claude Opus 4.1 (Latest, Default)")
+            print("  opus      - Claude 3 Opus")
+            print("  sonnet    - Claude 3.5 Sonnet")
+            print("  haiku     - Claude 3 Haiku")
             print("\nExamples:")
             print("  orchestrator.py 'Create a Python web scraper'")
-            print("  orchestrator.py 'Debug and fix my test suite'")
+            print("  orchestrator.py --model opus-4.1 'Debug my test suite'")
+            print("  orchestrator.py --select-model")
             sys.exit(0)
+        elif arg == '--model' and i + 1 < len(sys.argv):
+            model = sys.argv[i + 1]
+            i += 2
+        elif arg == '--select-model':
+            # Will trigger interactive selection
+            model = 'SELECT'
+            i += 1
         else:
-            initial_input = " ".join(sys.argv[1:])
-    else:
-        initial_input = None
+            # Rest is the input request
+            initial_input = " ".join(sys.argv[i:])
+            break
     
     try:
-        orchestrator = ClaudeOrchestrator()
+        orchestrator = ClaudeOrchestrator(model if model != 'SELECT' else None)
+        
+        # Interactive model selection if requested
+        if model == 'SELECT':
+            orchestrator.select_model()
+        
         orchestrator.run_orchestrated_session(initial_input)
     except KeyboardInterrupt:
         print("\n\n⚠️  Session interrupted by user")
