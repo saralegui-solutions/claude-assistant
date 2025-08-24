@@ -65,8 +65,68 @@ brew install portaudio
 pip3 install SpeechRecognition pyaudio --user
 ```
 
-**Note for WSL Users:**
-Voice input in WSL requires additional configuration for audio passthrough. The orchestrator will work perfectly with text input even without audio setup.
+### WSL Real Voice Input Setup
+
+The orchestrator now supports **real voice input in WSL** using PulseAudio!
+
+#### Automatic Setup
+```bash
+# Run when you first use claude-assistant
+# It will auto-initialize if not set up
+claude-assistant orch-voice
+```
+
+#### Manual Setup
+
+**Step 1: Install PulseAudio in WSL**
+```bash
+# Run the setup script
+modules/api-orchestrator/setup-wsl-audio.sh
+```
+
+**Step 2: Install PulseAudio on Windows**
+
+Option A: Using Chocolatey (Recommended)
+```powershell
+# In Windows PowerShell as Administrator
+choco install pulseaudio
+
+# Configure it (add to C:\ProgramData\chocolatey\lib\pulseaudio\tools\etc\pulse\default.pa):
+load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12
+
+# Run PulseAudio
+C:\ProgramData\chocolatey\lib\pulseaudio\tools\pulseaudio.exe
+```
+
+Option B: Manual Installation
+1. Download from: https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/
+2. Extract and configure as above
+3. Run pulseaudio.exe
+
+**Step 3: Test Connection**
+```bash
+# In WSL
+pactl info  # Should show server info
+
+# Test voice
+claude-assistant orch-voice  # Will use real microphone!
+```
+
+#### How It Works
+
+1. **Auto-Detection**: Orchestrator detects WSL environment
+2. **PulseAudio Check**: Tests if Windows PulseAudio is running
+3. **Smart Fallback**: 
+   - If PulseAudio connected → Real voice input
+   - If not connected → Text-based voice interface
+   - If no audio libs → Pure text input
+
+#### Troubleshooting
+
+- **No audio devices**: Make sure PulseAudio is running on Windows
+- **Connection refused**: Check Windows firewall settings
+- **Can't find microphone**: Allow microphone access in Windows settings
+- **Setup instructions**: See `~/pulseaudio-windows-setup.txt` after running setup
 
 ### Requirements
 

@@ -139,9 +139,74 @@ class ClaudeOrchestrator:
         self.log("Listening for voice input...", "INFO")
         print("🎤 Speak your requirements (press Ctrl+C to stop)...")
         
-        # Check for voice module
-        voice_script = Path.home() / '.claude' / 'modules' / 'voice-assistant' / 'voice_claude_direct.py'
-        if not voice_script.exists():
+        # Detect if running in WSL
+        is_wsl = False
+        try:
+            with open('/proc/version', 'r') as f:
+                is_wsl = 'microsoft' in f.read().lower()
+        except:
+            pass
+        
+        # Select appropriate voice script
+        voice_script = None
+        
+        if is_wsl:
+            # WSL-specific voice handling
+            voice_script_wsl_real = Path.home() / '.claude' / 'voice_claude_wsl_real.py'
+            voice_script_wsl_text = Path.home() / '.claude' / 'voice_claude_wsl.py'
+            
+            # Check if PulseAudio is available and connected
+            pulse_connected = False
+            try:
+                # Set PulseAudio environment
+                windows_ip = subprocess.run(
+                    ['grep', 'nameserver', '/etc/resolv.conf'],
+                    capture_output=True,
+                    text=True
+                ).stdout.strip().split()[-1] if subprocess.run(['grep', 'nameserver', '/etc/resolv.conf'], capture_output=True).returncode == 0 else None
+                
+                if windows_ip:
+                    os.environ['PULSE_SERVER'] = f'tcp:{windows_ip}'
+                
+                # Test connection
+                pulse_result = subprocess.run(
+                    ['pactl', 'info'],
+                    capture_output=True,
+                    stderr=subprocess.DEVNULL,
+                    timeout=1
+                )
+                pulse_connected = pulse_result.returncode == 0
+            except:
+                pass
+            
+            # Select script based on availability
+            if voice_script_wsl_real.exists() and pulse_connected:
+                voice_script = voice_script_wsl_real
+                self.log("Using real voice input (WSL + PulseAudio)", "SUCCESS")
+            elif voice_script_wsl_text.exists():
+                voice_script = voice_script_wsl_text
+                self.log("Using text-based voice interface (WSL)", "INFO")
+            else:
+                # Try regular voice scripts
+                for script_path in [
+                    Path.home() / '.claude' / 'voice_claude_direct.py',
+                    Path.home() / '.claude' / 'modules' / 'voice-assistant' / 'voice_claude_direct.py'
+                ]:
+                    if script_path.exists():
+                        voice_script = script_path
+                        break
+        else:
+            # Non-WSL: Use regular voice module
+            for script_path in [
+                Path.home() / '.claude' / 'voice_claude_direct.py',
+                Path.home() / '.claude' / 'modules' / 'voice-assistant' / 'voice_claude_direct.py'
+            ]:
+                if script_path.exists():
+                    voice_script = script_path
+                    break
+        
+        # Check if we found a voice script
+        if not voice_script:
             # Fallback to text input
             self.log("Voice module not found, using text input", "WARNING")
             return input("📝 Enter your requirements: ")
