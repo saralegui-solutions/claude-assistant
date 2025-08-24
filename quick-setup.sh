@@ -252,7 +252,13 @@ ca-help() {
     echo \"  ca-export  - Export conversation to PDF\"
     echo \"  ca-status  - Check system status\"
     echo \"  dash       - Quick dashboard\"
+    echo \"  claude-code - Claude with permissions bypass\"
 }
+
+# Claude Code alias (if not already present)
+if ! grep -q \"alias claude-code=\" ~/.bashrc 2>/dev/null && ! grep -q \"alias claude-code=\" ~/.zshrc 2>/dev/null; then
+    alias claude-code=\"claude --dangerously-skip-permissions\"
+fi
 # ============================================"
     
     # Check if aliases already exist
