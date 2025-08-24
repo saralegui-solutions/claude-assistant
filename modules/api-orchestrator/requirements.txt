@@ -1,0 +1,12 @@
+# Claude API Orchestrator - Python Requirements
+# Core dependencies (required)
+anthropic>=0.64.0
+
+# Voice input dependencies (optional)
+# Note: PyAudio requires system-level dependencies
+# See install-voice-deps.sh for full installation
+SpeechRecognition>=3.10.0
+# pyaudio>=0.2.14  # Uncomment if system dependencies are installed
+
+# Optional text-to-speech
+# pyttsx3>=2.90

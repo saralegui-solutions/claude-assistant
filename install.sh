@@ -28,6 +28,7 @@ declare -A MODULES=(
     ["notifications"]="Notifications - Get alerts for Claude Code events"
     ["voice-assistant"]="Voice Assistant - Voice input/output for Claude"
     ["pdf-generator"]="PDF Generator - Convert markdown and documents to professional PDFs"
+    ["api-orchestrator"]="API Orchestrator - Automated Claude API + Code workflow coordination"
 )
 
 # Function to print colored output
@@ -348,6 +349,54 @@ EOPDF
     print_success "PDF Generator installed"
 }
 
+# Install API Orchestrator module
+install_api_orchestrator() {
+    print_status "Installing API Orchestrator..."
+    
+    local module_dir="$SCRIPT_DIR/modules/api-orchestrator"
+    
+    # Create orchestrator directories
+    mkdir -p "$CLAUDE_DIR/modules/api-orchestrator"
+    mkdir -p "$CLAUDE_DIR/orchestrated-sessions"
+    
+    # Copy orchestrator script
+    if [ -f "$module_dir/orchestrator.py" ]; then
+        cp "$module_dir/orchestrator.py" "$CLAUDE_DIR/modules/api-orchestrator/"
+        chmod +x "$CLAUDE_DIR/modules/api-orchestrator/orchestrator.py"
+    fi
+    
+    # Create wrapper script
+    cat > "$CLAUDE_DIR/claude-orchestrate" << 'EOORCH'
+#!/bin/bash
+# Claude Orchestrator wrapper
+
+ORCHESTRATOR="$HOME/.claude/modules/api-orchestrator/orchestrator.py"
+
+if [ ! -f "$ORCHESTRATOR" ]; then
+    echo "Orchestrator not installed. Run: claude-assistant install api-orchestrator"
+    exit 1
+fi
+
+if ! command -v python3 &> /dev/null; then
+    echo "Python 3 is required but not installed!"
+    exit 1
+fi
+
+python3 "$ORCHESTRATOR" "$@"
+EOORCH
+    
+    chmod +x "$CLAUDE_DIR/claude-orchestrate"
+    
+    # Check for Python dependencies
+    if command -v python3 &> /dev/null && command -v pip3 &> /dev/null; then
+        print_info "Checking Python dependencies for orchestrator..."
+        python3 -m pip list 2>/dev/null | grep -q anthropic || \
+            print_warning "Install anthropic package: pip3 install anthropic"
+    fi
+    
+    print_success "API Orchestrator installed"
+}
+
 # Configure hooks in settings.json
 configure_hooks() {
     print_status "Configuring Claude Code hooks..."
@@ -546,6 +595,14 @@ display_summary() {
         echo ""
     fi
     
+    if [[ " ${SELECTED_MODULES[@]} " =~ " api-orchestrator " ]]; then
+        echo "  API Orchestrator:"
+        echo "    $CLAUDE_DIR/claude-orchestrate"
+        echo "    Voice: claude-orchestrate (no args)"
+        echo "    Text: claude-orchestrate 'your request'"
+        echo ""
+    fi
+    
     echo -e "${BOLD}Configuration Files:${NC}"
     echo "  • Settings: $SETTINGS_FILE"
     echo "  • Rate Limits: $CLAUDE_DIR/rate-limit-config.json"
@@ -595,6 +652,9 @@ main() {
                 ;;
             pdf-generator)
                 install_pdf_generator
+                ;;
+            api-orchestrator)
+                install_api_orchestrator
                 ;;
         esac
     done
